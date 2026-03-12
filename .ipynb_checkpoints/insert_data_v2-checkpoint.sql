@@ -1,3 +1,6 @@
+SET DEFINE OFF
+
+
 
 
 DROP TABLE BILLBOARD_WEEKS CASCADE CONSTRAINTS PURGE;
@@ -5,25 +8,29 @@ DROP TABLE CHARTS CASCADE CONSTRAINTS PURGE;
 DROP TABLE SPOTIFY_SONGS CASCADE CONSTRAINTS PURGE;
 PURGE RECYCLEBIN;
 
-
+-- ------------------------------------------------------------
+-- Parent table: one row per unique Spotify track
+-- ------------------------------------------------------------
 CREATE TABLE SPOTIFY_SONGS (
  track_id VARCHAR2(50) NOT NULL,
  track_name VARCHAR2(500)  NOT NULL,
  track_artist            VARCHAR2(300)  NOT NULL,
- track_popularity        NUMBER(3)      NOT NULL,  
+ track_popularity        NUMBER(3)      NOT NULL,   -- 0-100
  track_album_release_date DATE          NOT NULL,
- danceability            NUMBER(6,4)    NOT NULL,   
- speechiness             NUMBER(6,4)    NOT NULL,   
+ danceability            NUMBER(6,4)    NOT NULL,   -- 0.0-1.0
+ speechiness             NUMBER(6,4)    NOT NULL,   -- 0.0-1.0
  CONSTRAINT pk_spotify_songs PRIMARY KEY (track_id),
  CONSTRAINT chk_popularity   CHECK (track_popularity BETWEEN 0 AND 100),
     CONSTRAINT chk_danceability CHECK (danceability BETWEEN 0 AND 1),
     CONSTRAINT chk_speechiness  CHECK (speechiness  BETWEEN 0 AND 1)
 );
 
-
+-- ------------------------------------------------------------
+-- Spotify Canada Top-200 chart entries (one random day/month)
+-- ------------------------------------------------------------
 CREATE TABLE CHARTS (
     chart_date  DATE          NOT NULL,
-    rank        NUMBER(3)      NOT NULL,  
+    rank        NUMBER(3)      NOT NULL,   -- 1-200
     streams     NUMBER(12)     NOT NULL,
     track_id    VARCHAR2(50)   NOT NULL,
     CONSTRAINT pk_charts  PRIMARY KEY (chart_date, rank),
@@ -33,12 +40,16 @@ CREATE TABLE CHARTS (
     CONSTRAINT chk_streams CHECK (streams >= 0)
 );
 
-
+-- ------------------------------------------------------------
+-- Billboard Hot-100 charting runs, aggregated to one row
+-- per (track, chart-instance). A track can re-enter the chart
+-- multiple times; each re-entry is a distinct instance.
+-- ------------------------------------------------------------
 CREATE TABLE BILLBOARD_WEEKS (
     track_id            VARCHAR2(50)  NOT NULL,
     instance            NUMBER(3)     NOT NULL,
     end_date            DATE          NOT NULL,
-    best_week_position  NUMBER(3)     NOT NULL,   
+    best_week_position  NUMBER(3)     NOT NULL,   -- 1-100
     weeks_on_chart      NUMBER(3)     NOT NULL,
     CONSTRAINT pk_billboard PRIMARY KEY (track_id, instance),
     CONSTRAINT fk_billboard_track
@@ -47,7 +58,9 @@ CREATE TABLE BILLBOARD_WEEKS (
     CONSTRAINT chk_weeks    CHECK (weeks_on_chart >= 1)
 );
 
-
+-- ------------------------------------------------------------
+-- SPOTIFY_SONGS inserts
+-- ------------------------------------------------------------
 INSERT INTO SPOTIFY_SONGS VALUES ('6oJ6le65B3SEqPwMRNXWjY', 'Higher Love', 'Kygo', 87, TO_DATE('2019-06-28','YYYY-MM-DD'), 0.693, 0.0324);
 INSERT INTO SPOTIFY_SONGS VALUES ('3yNZ5r3LKfdmjoS3gkhUCT', 'bad guy (with Justin Bieber)', 'Billie Eilish', 83, TO_DATE('2019-07-11','YYYY-MM-DD'), 0.67, 0.295);
 INSERT INTO SPOTIFY_SONGS VALUES ('05CwHjIk71RXVU40boRMnR', 'Call You Mine', 'The Chainsmokers', 39, TO_DATE('2019-05-31','YYYY-MM-DD'), 0.591, 0.0289);
@@ -391,6 +404,7 @@ INSERT INTO SPOTIFY_SONGS VALUES ('4iVD0fTHGxV9JWloujsL3s', 'Double Up (feat. Be
 INSERT INTO SPOTIFY_SONGS VALUES ('6tByydPskASjm9jTPkNQq0', 'Numb Numb Juice', 'ScHoolboy Q', 72, TO_DATE('2019-04-26','YYYY-MM-DD'), 0.885, 0.367);
 INSERT INTO SPOTIFY_SONGS VALUES ('5FDCDBFDKpf7TLzDx6r2Lp', 'Big Boy Diamonds (feat. Kodak Black & London on Da Track)', 'Gucci Mane', 75, TO_DATE('2019-10-18','YYYY-MM-DD'), 0.883, 0.299);
 INSERT INTO SPOTIFY_SONGS VALUES ('7e89621JPkKaeDSTQ3avtg', 'Sweet Home Alabama', 'Lynyrd Skynyrd', 81, TO_DATE('1974-04-15','YYYY-MM-DD'), 0.596, 0.0255);
+INSERT INTO SPOTIFY_SONGS VALUES ('3yrSvpt2l1xhsV9Em88Pul', 'Brown Eyed Girl', 'Van Morrison', 79, TO_DATE('1967-09','YYYY-MM-DD'), 0.491, 0.0376);
 INSERT INTO SPOTIFY_SONGS VALUES ('0e7ipj03S05BNilyu5bRzt', 'rockstar (feat. 21 Savage)', 'Post Malone', 88, TO_DATE('2018-04-27','YYYY-MM-DD'), 0.585, 0.0712);
 INSERT INTO SPOTIFY_SONGS VALUES ('4qKcDkK6siZ7Jp1Jb4m0aL', 'Look Alive (feat. Drake)', 'BlocBoy JB', 79, TO_DATE('2018-02-09','YYYY-MM-DD'), 0.922, 0.27);
 INSERT INTO SPOTIFY_SONGS VALUES ('2ve5NyzWHUbIYxL33goCX7', 'Wow.', 'Post Malone', 41, TO_DATE('2019-09-06','YYYY-MM-DD'), 0.829, 0.208);
@@ -2048,7 +2062,9 @@ INSERT INTO SPOTIFY_SONGS VALUES ('1bOoGwUyHrkG1DqQm5GPMa', 'Without the Bitter 
 INSERT INTO SPOTIFY_SONGS VALUES ('3ZjnFYlal0fXN6t61wdxhl', 'Terrible Things - EP Version', 'Mayday Parade', 59, TO_DATE('2009-10-06','YYYY-MM-DD'), 0.285, 0.0295);
 INSERT INTO SPOTIFY_SONGS VALUES ('7iko4woUrA2MbenSv2UaM7', 'Kids in Love', 'Mayday Parade', 45, TO_DATE('2009-10-05','YYYY-MM-DD'), 0.512, 0.0583);
 
-
+-- ------------------------------------------------------------
+-- CHARTS inserts
+-- ------------------------------------------------------------
 INSERT INTO CHARTS VALUES (TO_DATE('2019-02-11','YYYY-MM-DD'), 1, 374617, '4kV4N9D1iKVxx1KLvtTpjS');
 INSERT INTO CHARTS VALUES (TO_DATE('2019-02-11','YYYY-MM-DD'), 2, 359965, '6ocbgoVGwYJhOv1GgI9NsF');
 INSERT INTO CHARTS VALUES (TO_DATE('2019-02-11','YYYY-MM-DD'), 3, 205702, '6MWtB6iiXyIwun0YzU6DFP');
@@ -3482,6 +3498,7 @@ INSERT INTO CHARTS VALUES (TO_DATE('2019-10-12','YYYY-MM-DD'), 188, 29439, '58q2
 INSERT INTO CHARTS VALUES (TO_DATE('2019-10-12','YYYY-MM-DD'), 190, 29341, '2B9wgj9XzbJZLty03PRbVo');
 INSERT INTO CHARTS VALUES (TO_DATE('2019-10-12','YYYY-MM-DD'), 191, 29319, '6kls8cSlUyHW2BUOkDJIZE');
 INSERT INTO CHARTS VALUES (TO_DATE('2019-10-12','YYYY-MM-DD'), 192, 29306, '0JP9xo3adEtGSdUEISiszL');
+INSERT INTO CHARTS VALUES (TO_DATE('2019-10-12','YYYY-MM-DD'), 193, 29210, '3yrSvpt2l1xhsV9Em88Pul');
 INSERT INTO CHARTS VALUES (TO_DATE('2019-10-12','YYYY-MM-DD'), 195, 29188, '5pAbCxt9e3f81lOmjIXwzd');
 INSERT INTO CHARTS VALUES (TO_DATE('2019-10-12','YYYY-MM-DD'), 196, 29164, '1xzBco0xcoJEDXktl7Jxrr');
 INSERT INTO CHARTS VALUES (TO_DATE('2019-10-12','YYYY-MM-DD'), 197, 29111, '44ADyYoY5liaRa3EOAl4uf');
@@ -3591,6 +3608,7 @@ INSERT INTO CHARTS VALUES (TO_DATE('2019-06-30','YYYY-MM-DD'), 129, 36949, '5JEx
 INSERT INTO CHARTS VALUES (TO_DATE('2019-06-30','YYYY-MM-DD'), 132, 36057, '1xzBco0xcoJEDXktl7Jxrr');
 INSERT INTO CHARTS VALUES (TO_DATE('2019-06-30','YYYY-MM-DD'), 133, 35970, '4w8niZpiMy6qz1mntFA5uM');
 INSERT INTO CHARTS VALUES (TO_DATE('2019-06-30','YYYY-MM-DD'), 135, 35865, '09IStsImFySgyp0pIQdqAc');
+INSERT INTO CHARTS VALUES (TO_DATE('2019-06-30','YYYY-MM-DD'), 137, 35601, '3yrSvpt2l1xhsV9Em88Pul');
 INSERT INTO CHARTS VALUES (TO_DATE('2019-06-30','YYYY-MM-DD'), 138, 35471, '1ThmUihH9dF8EV08ku5AXN');
 INSERT INTO CHARTS VALUES (TO_DATE('2019-06-30','YYYY-MM-DD'), 139, 35391, '2374M0fQpWi3dLnB54qaLX');
 INSERT INTO CHARTS VALUES (TO_DATE('2019-06-30','YYYY-MM-DD'), 142, 34710, '1zB4vmk8tFRmM9UULNzbLB');
@@ -3749,7 +3767,9 @@ INSERT INTO CHARTS VALUES (TO_DATE('2019-12-20','YYYY-MM-DD'), 194, 39926, '3ee8
 INSERT INTO CHARTS VALUES (TO_DATE('2019-12-20','YYYY-MM-DD'), 195, 39561, '0DiDStADDVh3SvAsoJAFMk');
 INSERT INTO CHARTS VALUES (TO_DATE('2019-12-20','YYYY-MM-DD'), 198, 39384, '7CHi4DtfK4heMlQaudCuHK');
 
-
+-- ------------------------------------------------------------
+-- BILLBOARD_WEEKS inserts
+-- ------------------------------------------------------------
 INSERT INTO BILLBOARD_WEEKS VALUES ('04MLEeAMuV9IlHEsD8vF6A', 1, TO_DATE('2019-02-16','YYYY-MM-DD'), 60, 20);
 INSERT INTO BILLBOARD_WEEKS VALUES ('09oZ9eXQ2fo6YDrPzJqAoP', 1, TO_DATE('2019-04-20','YYYY-MM-DD'), 58, 1);
 INSERT INTO BILLBOARD_WEEKS VALUES ('0BnTBAGmr9FtYwkZrwKhwS', 1, TO_DATE('2019-08-24','YYYY-MM-DD'), 43, 13);
@@ -4048,7 +4068,9 @@ INSERT INTO BILLBOARD_WEEKS VALUES ('7tgjDlQsMR8RvkdlNCJA58', 1, TO_DATE('2019-1
 INSERT INTO BILLBOARD_WEEKS VALUES ('7x9nXsowok1JszkVztI5NI', 1, TO_DATE('2019-10-26','YYYY-MM-DD'), 56, 3);
 INSERT INTO BILLBOARD_WEEKS VALUES ('7yfi8B8opXjnRh4VZnOkz9', 1, TO_DATE('2019-08-10','YYYY-MM-DD'), 27, 17);
 
-
+-- ------------------------------------------------------------
+-- Commit all inserts
+-- ------------------------------------------------------------
 COMMIT;
 
-
+-- Summary: 2000 SPOTIFY_SONGS | 1701 CHARTS | 297 BILLBOARD_WEEKS rows inserted.
