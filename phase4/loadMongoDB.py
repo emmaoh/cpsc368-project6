@@ -43,8 +43,8 @@ import pandas as pd
 from datetime import datetime
 
 
-CWL  = "aabbas07"  # your CWL username
-SNUM = "95983458"  # 8-digit student number
+CWL  = "haydenh7"  # your CWL username
+SNUM = "55946628"  # 8-digit student number
 
 DATA_DIR = os.getcwd()
 
