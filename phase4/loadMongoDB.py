@@ -33,7 +33,7 @@ Usage
        ssh -l <CWL> -L localhost:27017:nosql.students.cs.ubc.ca:27017 remote.students.cs.ubc.ca
 2. Update CWL and SNUM below with your own CWL and Student Number
 3. Place the three CSVs in the same folder as this script (or update DATA_DIR)
-4. Run: python3 load_mongodb.py
+4. Run: python3 loadMongoDB.py in terminal
 
 """
 
